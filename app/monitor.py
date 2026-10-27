@@ -19,17 +19,21 @@ CHECK_INTERVAL = 10
 
 os.makedirs("logs", exist_ok=True)
 
-handler = RotatingFileHandler(
+file_handler = RotatingFileHandler(
     "logs/monitor.log",
     maxBytes=1_000_000,
     backupCount=3,
 )
 
+console_handler = logging.StreamHandler()
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[handler],
+    handlers=[console_handler, file_handler],
 )
+
+logger = logging.getLogger(__name__)
 
 
 def check_containers():
@@ -44,23 +48,28 @@ def check_containers():
             container_id = container.id
             current_container_ids.add(container_id)
 
-            print(f"Name: {container.name}")
-            print(f"Status: {status}")
+            logger.info(
+                "Container: %s | Status: %s",
+                container.name,
+                status,
+            )
 
             check_container_status(container)
 
             if status == "running":
-                print(f"INFO: {container.name} is running.")
-                logging.info(f"INFO: {container.name} is running.")
-
                 try:
                     cpu, memory, memory_percent = get_resource_usage(
                         container
                     )
 
-                    print(f"CPU Usage: {cpu:.2f}%")
-                    print(f"Memory Usage: {memory / (1024 ** 2):.2f} MiB")
-                    print(f"Memory Usage: {memory_percent:.2f}%")
+                    logger.info(
+                        "Container: %s | CPU: %.2f%% | Memory: %.2f MiB "
+                        "(%.2f%%)",
+                        container.name,
+                        cpu,
+                        memory / (1024 ** 2),
+                        memory_percent,
+                    )
 
                     check_resource_alerts(
                         container,
@@ -69,58 +78,52 @@ def check_containers():
                     )
 
                 except (KeyError, ZeroDivisionError, ValueError) as error:
-                    message = (
-                        f"Could not read resource metrics for "
-                        f"{container.name}: {error}"
+                    logger.error(
+                        "Could not read resource metrics for %s: %s",
+                        container.name,
+                        error,
                     )
-                    print(message)
-                    logging.error(message)
 
-                except DockerException as error:
-                    message = (
-                        f"Could not retrieve stats for "
-                        f"{container.name}: {error}"
+                except DockerException:
+                    logger.exception(
+                        "Could not retrieve stats for %s",
+                        container.name,
                     )
-                    print(message)
-                    logging.error(message)
 
             elif status != "exited":
-                message = f"INFO: Container state is {status}."
-                print(message)
-                logging.info(message)
+                logger.info(
+                    "Container %s is in state: %s",
+                    container.name,
+                    status,
+                )
 
-            print("-" * 30)
-
-        except DockerException as error:
-            message = (
-                f"Could not inspect container {container.name}: {error}"
+        except DockerException:
+            logger.exception(
+                "Could not inspect container %s",
+                container.name,
             )
-            print(message)
-            logging.error(message)
 
     cleanup_alert_tracking(current_container_ids)
 
 
 def start_monitoring():
-    print("Docker monitoring started...")
-    print(f"Checking containers every {CHECK_INTERVAL} seconds.")
-    print(f"CPU threshold: {CPU_THRESHOLD}%")
-    print(f"Memory threshold: {MEMORY_THRESHOLD}%")
-    print("Press Ctrl+C to stop.\n")
+    logger.info("Docker monitoring started.")
+    logger.info("Check interval: %s seconds", CHECK_INTERVAL)
+    logger.info("CPU threshold: %s%%", CPU_THRESHOLD)
+    logger.info("Memory threshold: %s%%", MEMORY_THRESHOLD)
+    logger.info("Press Ctrl+C to stop monitoring.")
 
     while True:
         try:
             check_containers()
             time.sleep(CHECK_INTERVAL)
 
-        except DockerException as error:
-            message = f"Docker connection error: {error}"
-            print(message)
-            logging.error(message)
+        except DockerException:
+            logger.exception("Docker connection error.")
             time.sleep(CHECK_INTERVAL)
 
         except KeyboardInterrupt:
-            print("\nMonitoring stopped.")
+            logger.info("Monitoring stopped.")
             break
 
 

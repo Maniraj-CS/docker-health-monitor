@@ -16,17 +16,12 @@ def check_container_status(container):
     if status == "exited":
         if container_id not in alerted_containers:
             message = f"ALERT: {name} has stopped!"
-            print(message)
             logging.warning(message)
             alerted_containers.add(container_id)
-
-        else:
-            print("INFO: Stop alert already sent.")
 
     elif status == "running":
         if container_id in alerted_containers:
             message = f"RECOVERED: {name} is running again!"
-            print(message)
             logging.info(message)
             alerted_containers.remove(container_id)
 
@@ -41,7 +36,6 @@ def check_resource_alerts(container, cpu, memory_percent):
             message = (
                 f"ALERT: {name} CPU usage is high: {cpu:.2f}%"
             )
-            print(message)
             logging.warning(message)
             high_cpu_alerted.add(container_id)
 
@@ -50,7 +44,6 @@ def check_resource_alerts(container, cpu, memory_percent):
             f"RECOVERED: {name} CPU usage is back to normal: "
             f"{cpu:.2f}%"
         )
-        print(message)
         logging.info(message)
         high_cpu_alerted.remove(container_id)
 
@@ -61,7 +54,6 @@ def check_resource_alerts(container, cpu, memory_percent):
                 f"ALERT: {name} memory usage is high: "
                 f"{memory_percent:.2f}%"
             )
-            print(message)
             logging.warning(message)
             high_memory_alerted.add(container_id)
 
@@ -70,7 +62,6 @@ def check_resource_alerts(container, cpu, memory_percent):
             f"RECOVERED: {name} memory usage is back to normal: "
             f"{memory_percent:.2f}%"
         )
-        print(message)
         logging.info(message)
         high_memory_alerted.remove(container_id)
 
