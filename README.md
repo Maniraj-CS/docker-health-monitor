@@ -71,7 +71,7 @@ docker-health-monitor/
 │   └── monitor.log
 ├── .github/
 │   └── workflows/
-│       └── ci.yml             # Add when CI workflow is created
+│       └── ci.yml            
 ├── .dockerignore
 ├── Dockerfile
 ├── start.sh
@@ -348,7 +348,7 @@ The test suite covers API responses, Docker errors, resource threshold alerts, r
 - [x] Dockerfile and container startup script
 - [x] Makefile with Docker and testing commands
 - [x] `.dockerignore`
-- [ ] GitHub Actions CI workflow
+- [x] GitHub Actions CI workflow
 - [ ] Final end-to-end testing and documentation review
 
 ## 👨‍💻 Author
