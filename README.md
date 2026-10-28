@@ -1,41 +1,87 @@
 # 🐳 Docker Container Health Monitor
 
 <p align="center">
-  <strong>A Python-based monitoring tool for Docker containers</strong>
+  <strong>A lightweight Python tool to monitor Docker container health, CPU and memory usage.</strong>
   <br />
-  Monitor container status, CPU usage, memory usage, and resource alerts through a REST API and background monitoring process.
+  REST API + background monitor + threshold alerts + rotating logs, all packaged in one Docker image.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Docker-Container%20Monitoring-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Tests-15%20Passing-success?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests" />
+  <a href="https://github.com/Maniraj-CS/docker-health-monitor/actions/workflows/ci.yml">
+    <img src="https://github.com/Maniraj-CS/docker-health-monitor/actions/workflows/ci.yml/badge.svg" alt="CI status" />
+  </a>
+  <img src="https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white" alt="pytest" />
 </p>
 
 ---
 
+## 📖 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [Demo](#-demo)
+- [Architecture](#️-architecture)
+- [Quick Start](#-quick-start)
+- [Run Locally (without Docker)](#-run-locally-without-docker)
+- [API Endpoints](#-api-endpoints)
+- [Alerts](#-alerts)
+- [Logging](#-logging-and-log-rotation)
+- [Makefile Commands](#️-makefile-commands)
+- [Testing](#-testing)
+- [Project Structure](#-project-structure)
+- [Security Considerations](#-security-considerations)
+- [Roadmap](#️-roadmap)
+- [Author](#-author)
+
 ## 📌 Overview
 
-Docker Container Health Monitor is a Python application that monitors Docker containers and tracks their resource usage.
+Docker Container Health Monitor watches the containers running on a Docker host and keeps track of their status and resource usage.
 
-It provides a FastAPI REST API for retrieving container information and resource metrics. A background monitoring process checks container states and generates alerts when containers stop or CPU and memory usage exceed configured thresholds.
+- A **FastAPI** service exposes container details and live CPU/memory metrics.
+- A **background monitor** checks every container every 10 seconds and logs alerts when a container stops or when CPU or memory usage crosses a threshold.
+- Alerts are **de-duplicated** (no spam on consecutive cycles) and a **recovery** message is logged when things return to normal.
 
-The project includes Docker containerization, rotating file logging, automated tests, and a Makefile for common development and Docker operations.
+Both processes run together inside a single Docker image, and the container only needs access to the Docker socket.
 
 ## ✨ Features
 
-- 🟢 **Container Monitoring** — Monitor running and stopped containers.
-- 📊 **Resource Metrics** — Track CPU and memory usage.
-- 🚨 **Threshold Alerts** — Generate alerts when CPU or memory usage exceeds 80%.
-- 🔄 **Recovery Alerts** — Detect container recovery and resource usage returning to normal.
-- 🔁 **Duplicate Alert Prevention** — Avoid repeating the same alert during consecutive monitoring cycles.
-- 🌐 **REST API** — Retrieve container details and resource metrics using FastAPI.
-- 📝 **Logging** — Write monitoring logs to the console and a log file.
-- 📦 **Log Rotation** — Rotate log files at 1 MB and retain up to three backup files.
-- 🐳 **Dockerization** — Package the API and monitoring process in a Docker image.
-- 🛠️ **Makefile** — Simplify image builds, container operations, log access, and testing.
-- 🧪 **Automated Tests** — Test API endpoints and monitoring behaviour with pytest.
+| | Feature | Description |
+|---|---|---|
+| 🟢 | **Container monitoring** | Tracks running and stopped containers |
+| 📊 | **Resource metrics** | CPU and memory usage per container |
+| 🚨 | **Threshold alerts** | `WARNING` when CPU or memory exceeds 80% |
+| 🔄 | **Recovery alerts** | `INFO` when a container or its resource usage returns to normal |
+| 🔁 | **Duplicate alert prevention** | The same alert is not repeated in consecutive cycles |
+| 🌐 | **REST API** | Container list and stats via FastAPI, with Swagger docs |
+| 📝 | **Logging** | Console + file logging |
+| 📦 | **Log rotation** | Rotates at 1 MB, keeps 3 backups |
+| 🐳 | **Dockerized** | API and monitor packaged together |
+| 🛠️ | **Makefile** | One-line build, run, logs, stop, clean, and test |
+| 🧪 | **Automated tests** | pytest suite, run automatically in GitHub Actions CI |
+
+## 🎬 Demo
+
+<!--
+  HOW TO ADD SCREENSHOTS:
+  1. Save images inside docs/images/
+  2. Remove the comment markers around the image lines below
+-->
+
+<!--
+### Swagger UI
+![Swagger UI](docs/images/swagger-ui.png)
+
+### Container stats response
+![Container stats](docs/images/container-stats.png)
+
+### Alerts in the monitor log
+![Monitor log](docs/images/monitor-log.png)
+-->
+
+_Screenshots coming soon._
 
 ## 🏗️ Architecture
 
@@ -53,203 +99,104 @@ flowchart TD
     I --> J[JSON Responses]
 ```
 
-## 📂 Project Structure
+## 🚀 Quick Start
 
-```text
-docker-health-monitor/
-├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── monitor.py
-│   ├── metrics.py
-│   ├── docker_client.py
-│   └── alerts.py
-├── tests/
-│   ├── test_api.py
-│   └── test_monitor.py
-├── logs/
-│   └── monitor.log
-├── .github/
-│   └── workflows/
-│       └── ci.yml            
-├── .dockerignore
-├── Dockerfile
-├── start.sh
-├── Makefile
-├── requirements.txt
-├── README.md
-└── .gitignore
+The fastest way to try it is with Docker.
+
+**Requirements:** Docker Engine, Git, GNU Make.
+
+```bash
+# 1. Clone
+git clone https://github.com/Maniraj-CS/docker-health-monitor.git
+cd docker-health-monitor
+
+# 2. Build the image
+make build
+
+# 3. Run (logs are saved to ./logs by default)
+make run
 ```
 
-The `logs/` directory is used for monitoring logs. When running the Docker container, you can mount a host directory to preserve logs outside the container.
+Then open:
 
-## ⚙️ Prerequisites
+- API root: http://127.0.0.1:8000/
+- Swagger docs: http://127.0.0.1:8000/docs
 
-- Python 3.12 or compatible Python version
-- Docker Engine
-- Git
-- GNU Make
-- Basic knowledge of Python and REST APIs
+Useful follow-ups:
 
-## 🚀 Getting Started
+```bash
+make logs            # follow container console output
+tail -f logs/monitor.log   # follow the monitor log file on the host
+make stop            # stop and remove the container
+```
 
-### 1. Clone the repository
+To save logs in a custom folder (created automatically if missing):
+
+```bash
+make run LOG_DIR=/home/maniraj/docker-logs
+```
+
+> **Note:** `make run` uses the fixed container name `health-monitor`. If a container with that name already exists, run `make clean` first.
+
+### Try it out
+
+Start a test container, stop it, and start it again to see the alerts appear in the log:
+
+```bash
+docker run -d --name test-nginx nginx
+docker stop test-nginx      # -> container stopped WARNING
+docker start test-nginx     # -> recovery INFO
+tail -f logs/monitor.log
+```
+
+## 💻 Run Locally (without Docker)
+
+**Requirements:** Python 3.12+, Docker Engine access (the user must be able to talk to the Docker daemon).
 
 ```bash
 git clone https://github.com/Maniraj-CS/docker-health-monitor.git
 cd docker-health-monitor
-```
 
-### 2. Create a virtual environment
-
-```bash
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Start the API locally
+Start the API:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will be available at:
-
-- API root: http://127.0.0.1:8000/
-- Interactive API documentation: http://127.0.0.1:8000/docs
-
-### 5. Start the monitoring process
-
-Open a second terminal, activate the virtual environment, and run:
+In a second terminal (with the virtual environment activated), start the monitor:
 
 ```bash
 python -m app.monitor
 ```
 
-The monitoring process checks containers every 10 seconds.
-
-**Note:** Both processes require access to the Docker daemon. On Linux, this normally depends on Docker socket permissions.
-
-## 🐳 Run with Docker
-
-The Docker image packages the API and background monitoring process together.
-
-### 1. Build the image
-
-Using the Makefile:
-
-```bash
-make build
-```
-
-Or directly with Docker:
-
-```bash
-docker build -t docker-health-monitor .
-```
-
-### 2. Run the container
-
-Use the default log directory:
-
-```bash
-make run
-```
-
-The default host log directory is `logs/` inside the current project directory.
-
-To choose a custom host directory:
-
-```bash
-make run LOG_DIR=/home/maniraj/docker-logs
-```
-
-The custom directory will be created if it does not exist.
-
-The container exposes port `8000` and mounts the host Docker socket so the application can inspect Docker containers.
-
-### 3. Access the API
-
-- API root: http://127.0.0.1:8000/
-- API documentation: http://127.0.0.1:8000/docs
-
-### 4. View container logs
-
-```bash
-make logs
-```
-
-This displays the container's console output. To view the monitoring log file on the host:
-
-```bash
-tail -f logs/monitor.log
-```
-
-If you used a custom log directory, replace `logs/monitor.log` with the path to your custom directory.
-
-### 5. Stop and remove the container
-
-```bash
-make stop
-```
-
-To force-remove the container if it is still running or has stopped unexpectedly:
-
-```bash
-make clean
-```
-
-**Important:** The `run` target uses the fixed container name `health-monitor`. If a container with that name already exists, remove it before starting another instance.
-
-## 🛠️ Makefile Commands
-
-| Command | Description |
-|---|---|
-| `make build` | Build the Docker image |
-| `make run` | Start the container with the default log directory |
-| `make run LOG_DIR=/path/to/logs` | Start the container with a custom host log directory |
-| `make logs` | Follow the container's console logs |
-| `make stop` | Stop and remove the container |
-| `make clean` | Force-remove the container |
-| `make test` | Run the pytest test suite |
-
-Example:
-
-```bash
-make build
-make run LOG_DIR=/home/maniraj/docker-logs
-make logs
-```
+> On Linux, access to the Docker daemon usually depends on Docker socket permissions.
 
 ## 🌐 API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/` | Check API status |
+| `GET` | `/` | API status check |
 | `GET` | `/containers` | List Docker containers |
-| `GET` | `/containers/{container_name}/stats` | Retrieve resource metrics for a running container |
+| `GET` | `/containers/{container_name}/stats` | Resource metrics for a running container |
 
-### Example: List containers
+**List containers**
 
 ```bash
 curl http://127.0.0.1:8000/containers
 ```
 
-### Example: Retrieve container statistics
-
-Replace `my-container` with an existing running container name.
+**Get container stats** (replace `my-container` with a running container's name)
 
 ```bash
 curl http://127.0.0.1:8000/containers/my-container/stats
 ```
 
-Example response:
+Example response (values are illustrative):
 
 ```json
 {
@@ -261,11 +208,9 @@ Example response:
 }
 ```
 
-The response values are illustrative; actual metrics depend on the container.
+## 🚨 Alerts
 
-## 🚨 Alert Configuration
-
-The default thresholds are defined in `app/alerts.py`:
+Default thresholds are defined in `app/alerts.py`:
 
 ```python
 CPU_THRESHOLD = 80.0
@@ -277,86 +222,120 @@ MEMORY_THRESHOLD = 80.0
 | Container stopped | `WARNING` |
 | CPU usage exceeds threshold | `WARNING` |
 | Memory usage exceeds threshold | `WARNING` |
-| Container or resource recovery | `INFO` |
+| Container or resource usage recovered | `INFO` |
+
+The monitor checks all containers every **10 seconds**. An alert is logged once when a condition starts, not on every cycle.
 
 ## 📝 Logging and Log Rotation
 
-Monitoring logs are written to:
+Logs are written to the console and to `logs/monitor.log`.
 
-```text
-logs/monitor.log
-```
+| Setting | Value |
+|---|---|
+| Max file size | 1 MB |
+| Backup files | 3 |
+| Levels | `INFO`, `WARNING`, `ERROR` |
 
-The rotating file handler uses the following configuration:
+When running with Docker, the log directory is mounted from the host, so logs stay available even after the container is removed.
 
-- Maximum log file size: 1 MB
-- Backup files: 3
-- Log levels: `INFO`, `WARNING`, and `ERROR`
+## 🛠️ Makefile Commands
 
-The active log and its rotated backups are stored in the mounted host directory when using the Docker run configuration above. This allows logs to remain available after the container is removed.
+| Command | Description |
+|---|---|
+| `make build` | Build the Docker image |
+| `make run` | Start the container (default log directory) |
+| `make run LOG_DIR=/path/to/logs` | Start the container with a custom log directory |
+| `make logs` | Follow the container's console logs |
+| `make stop` | Stop and remove the container |
+| `make clean` | Force-remove the container |
+| `make test` | Run the pytest test suite |
 
-View the log file:
-
-```bash
-tail -f logs/monitor.log
-```
-
-## 🧪 Running Tests
-
-Run the test suite with pytest:
+## 🧪 Testing
 
 ```bash
 make test
-```
-
-Alternatively:
-
-```bash
+# or
 python -m pytest -v
 ```
 
-The test suite covers API responses, Docker errors, resource threshold alerts, recovery alerts, and duplicate alert prevention.
+The suite covers API responses, Docker errors, threshold alerts, recovery alerts, and duplicate alert prevention. Tests also run automatically on every push through GitHub Actions (see the CI badge at the top).
 
-**Latest reported local test result:** 15 passed.
+## 📂 Project Structure
+
+```text
+docker-health-monitor/
+├── app/
+│   ├── __init__.py
+│   ├── main.py            # FastAPI app and endpoints
+│   ├── monitor.py         # Background monitoring loop
+│   ├── metrics.py         # CPU and memory calculation
+│   ├── docker_client.py   # Docker SDK wrapper
+│   └── alerts.py          # Thresholds and alert logic
+├── tests/
+│   ├── test_api.py
+│   └── test_monitor.py
+├── logs/
+│   └── monitor.log
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .dockerignore
+├── Dockerfile
+├── start.sh
+├── Makefile
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 
 ## 🔐 Security Considerations
 
-- **Docker socket access:** Mounting `/var/run/docker.sock` gives the application powerful control over the host's Docker daemon. Only grant this access to trusted applications.
-- **API exposure:** Do not expose the API publicly without appropriate authentication and network security.
-- **Secrets:** Never store credentials or sensitive configuration in source code.
-- **Log permissions:** Ensure the host log directory has appropriate permissions.
+- **Docker socket access:** Mounting `/var/run/docker.sock` gives the application powerful control over the host's Docker daemon. Only run it in environments you trust.
+- **API exposure:** The API has no authentication. Do not expose it to the public internet without adding authentication and network restrictions.
+- **Secrets:** Never commit credentials or sensitive configuration to the repository.
+- **Log permissions:** Make sure the host log directory has appropriate permissions.
 
-## 🛠️ Technology Stack
+## 🗺️ Roadmap
 
-<p>
-  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white" alt="Pytest" />
-  <img src="https://img.shields.io/badge/Makefile-000000?style=flat-square&logo=gnu&logoColor=white" alt="Make" />
-  <img src="https://img.shields.io/badge/Git-GitHub-F05032?style=flat-square&logo=github&logoColor=white" alt="Git and GitHub" />
-</p>
+**Completed**
 
-## 🗺️ Project Roadmap
-
-- [x] Docker container status monitoring
-- [x] CPU and memory usage monitoring
+- [x] Container status monitoring
+- [x] CPU and memory monitoring
 - [x] Threshold and recovery alerts
 - [x] FastAPI endpoints
 - [x] Automated tests
 - [x] Rotating file logging
-- [x] Dockerfile and container startup script
-- [x] Makefile with Docker and testing commands
+- [x] Dockerfile and startup script
+- [x] Makefile
 - [x] `.dockerignore`
 - [x] GitHub Actions CI workflow
+
+**In progress**
+
 - [ ] Final end-to-end testing and documentation review
+
+**Ideas for the future**
+
+- [ ] Configurable thresholds and check interval through environment variables
+- [ ] Webhook / Slack / email notifications
+- [ ] Docker `HEALTHCHECK` and a `/health` endpoint
+- [ ] Prometheus `/metrics` endpoint for Grafana dashboards
+- [ ] API authentication
+
+## 🧰 Tech Stack
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
+![Make](https://img.shields.io/badge/Makefile-000000?style=flat-square&logo=gnu&logoColor=white)
 
 ## 👨‍💻 Author
 
 **Maniraj Pandit**
 
 - GitHub: [@Maniraj-CS](https://github.com/Maniraj-CS)
-- Repository: [docker-health-monitor](https://github.com/Maniraj-CS/docker-health-monitor)
 
 ---
 
