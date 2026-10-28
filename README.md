@@ -22,7 +22,6 @@
 
 - [Overview](#-overview)
 - [Features](#-features)
-- [Demo](#-demo)
 - [Architecture](#️-architecture)
 - [Quick Start](#-quick-start)
 - [Run Locally (without Docker)](#-run-locally-without-docker)
