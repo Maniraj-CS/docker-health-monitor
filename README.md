@@ -62,42 +62,14 @@ Both processes run together inside a single Docker image, and the container only
 | 🛠️ | **Makefile** | One-line build, run, logs, stop, clean, and test |
 | 🧪 | **Automated tests** | pytest suite, run automatically in GitHub Actions CI |
 
-## 🎬 Demo
-
-<!--
-  HOW TO ADD SCREENSHOTS:
-  1. Save images inside docs/images/
-  2. Remove the comment markers around the image lines below
--->
-
-<!--
-### Swagger UI
-![Swagger UI](docs/images/swagger-ui.png)
-
-### Container stats response
-![Container stats](docs/images/container-stats.png)
-
-### Alerts in the monitor log
-![Monitor log](docs/images/monitor-log.png)
--->
-
-_Screenshots coming soon._
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart TD
-    A[Docker Containers] --> B[Docker Python SDK]
-    B --> C[Monitoring Module]
-    C --> D[Container Status Checks]
-    C --> E[CPU and Memory Metrics]
-    D --> F[Alert Manager]
-    E --> F
-    C --> G[Logging System]
-    H[API Client] --> I[FastAPI]
-    I --> B
-    I --> J[JSON Responses]
-```
+
+<p align="center">
+  <img src="./assets/architecture (3).svg" alt="Docker Health Monitor architecture" width="900" />
+</p>
+
 
 ## 🚀 Quick Start
 
