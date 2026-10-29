@@ -223,6 +223,8 @@ When running with Docker, the log directory is mounted from the host, so logs st
 
 ## 🧪 Testing
 
+Run the test suite using:
+
 ```bash
 make test
 # or
@@ -230,6 +232,12 @@ python -m pytest -v
 ```
 
 The suite covers API responses, Docker errors, threshold alerts, recovery alerts, and duplicate alert prevention. Tests also run automatically on every push through GitHub Actions (see the CI badge at the top).
+
+### Test Results
+
+![Pytest test results showing 15 passed tests](assets/Screenshot%20from%202026-10-27%2023-29-31.png)
+
+**Result:** 15 tests passed.
 
 ## 📂 Project Structure
 
